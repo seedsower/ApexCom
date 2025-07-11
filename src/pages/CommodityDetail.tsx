@@ -8,6 +8,7 @@ import { OracleStatus } from "@/components/OracleStatus";
 import { Button } from "@/components/ui/button";
 import { priceService } from "@/services/priceService";
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
+import { TradeForm } from "@/components/TradeForm";
 
 const CommodityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -111,28 +112,18 @@ const CommodityDetail = () => {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-8">
             <PriceCard commodity={commodity} showDetails={false} />
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleRefresh} 
-                className="w-full gap-2" 
-                disabled={isRefreshing}
-              >
-                {isRefreshing ? (
-                  <Loader2Icon className="h-4 w-4 animate-spin" />
-                ) : (
-                  <span>Refresh Data</span>
-                )}
-              </Button>
-            </div>
-          </div>
-          
-          <div className="lg:col-span-2 space-y-6">
             <PriceChart priceHistory={priceHistory} />
-            <OracleStatus oracle={oracle} onRefresh={handleRefresh} />
+            <OracleStatus oracle={oracle} />
+          </div>
+          <div className="lg:col-span-1">
+            <TradeForm 
+              commodityId={commodity.id}
+              commodityName={commodity.name}
+              currentPrice={commodity.price}
+            />
           </div>
         </div>
       </div>

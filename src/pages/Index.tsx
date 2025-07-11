@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { priceService } from "@/services/priceService";
 import { useNavigate } from "react-router-dom";
-import { Loader2Icon, RefreshCwIcon, FolderIcon } from "lucide-react";
+import { Loader2Icon, RefreshCwIcon, FolderIcon, MountainIcon } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -77,7 +77,10 @@ const Index = () => {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col space-y-4">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold sm:text-4xl">Oracle Price Feed</h1>
+              <h1 className="text-3xl font-bold sm:text-4xl flex items-center gap-2">
+                <MountainIcon className="h-8 w-8 text-primary" />
+                ApexCommodity
+              </h1>
               <p className="max-w-3xl text-muted-foreground">
                 Real-time commodity prices scraped from Trading Economics and synchronized 
                 with blockchain oracles every 6 hours.
