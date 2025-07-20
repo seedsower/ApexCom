@@ -110,23 +110,13 @@ export function PriceCard({ commodity, showDetails = true }: PriceCardProps) {
         <CardFooter className="pt-0 flex-col gap-2">
           <div className="flex w-full gap-2">
             <Button 
-              variant="ghost" 
+              variant="default" 
               size="sm" 
-              className="flex-1 justify-start gap-2 text-xs"
+              className="flex-1 justify-center gap-2 text-xs"
               onClick={() => navigate(`/commodity/${id}`)}
             >
               <LinkIcon className="h-3.5 w-3.5" />
-              View Oracle Details
-            </Button>
-            <Button 
-              variant={isTokenizationAvailable ? "default" : "secondary"}
-              size="sm" 
-              className="flex-1 justify-center gap-2 text-xs"
-              disabled={!isTokenizationAvailable}
-              onClick={() => console.log(`Tokenize ${name} on multiple chains`)} // TODO: Implement multi-chain tokenization
-            >
-              <CoinsIcon className="h-3.5 w-3.5" />
-              {isTokenizationAvailable ? "Tokenize" : "Coming Soon"}
+              View Commodity Details
             </Button>
           </div>
         </CardFooter>
