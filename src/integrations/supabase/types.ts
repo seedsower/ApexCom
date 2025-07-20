@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      commodity_tokens: {
+        Row: {
+          blockchain: string
+          contract_address: string
+          created_at: string
+          decimals: number | null
+          id: string
+          name: string
+          symbol: string
+          ticker: string
+        }
+        Insert: {
+          blockchain?: string
+          contract_address: string
+          created_at?: string
+          decimals?: number | null
+          id?: string
+          name: string
+          symbol: string
+          ticker: string
+        }
+        Update: {
+          blockchain?: string
+          contract_address?: string
+          created_at?: string
+          decimals?: number | null
+          id?: string
+          name?: string
+          symbol?: string
+          ticker?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          total_portfolio_value: number | null
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_portfolio_value?: number | null
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_portfolio_value?: number | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          commodity_symbol: string
+          created_at: string
+          id: string
+          price_per_token: number
+          status: string | null
+          token_amount: number
+          total_value: number
+          transaction_hash: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          commodity_symbol: string
+          created_at?: string
+          id?: string
+          price_per_token: number
+          status?: string | null
+          token_amount: number
+          total_value: number
+          transaction_hash?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          commodity_symbol?: string
+          created_at?: string
+          id?: string
+          price_per_token?: number
+          status?: string | null
+          token_amount?: number
+          total_value?: number
+          transaction_hash?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_positions: {
+        Row: {
+          average_buy_price: number | null
+          commodity_symbol: string
+          created_at: string
+          id: string
+          token_balance: number | null
+          total_invested: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_buy_price?: number | null
+          commodity_symbol: string
+          created_at?: string
+          id?: string
+          token_balance?: number | null
+          total_invested?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_buy_price?: number | null
+          commodity_symbol?: string
+          created_at?: string
+          id?: string
+          token_balance?: number | null
+          total_invested?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
