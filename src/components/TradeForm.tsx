@@ -10,9 +10,10 @@ interface TradeFormProps {
   commodityId: string;
   commodityName: string;
   currentPrice: number;
+  contractAddresses?: { base?: string; solana?: string };
 }
 
-export function TradeForm({ commodityId, commodityName, currentPrice }: TradeFormProps) {
+export function TradeForm({ commodityId, commodityName, currentPrice, contractAddresses }: TradeFormProps) {
   const [amount, setAmount] = useState<number>(1);
   const [network, setNetwork] = useState<'base' | 'solana'>('base');
   const { buyCommodity, isBaseTransactionPending, isBaseConfirming, isSolanaTransactionPending } = useTrade();
@@ -29,7 +30,7 @@ export function TradeForm({ commodityId, commodityName, currentPrice }: TradeFor
       return;
     }
 
-    const result = await buyCommodity(commodityId, amount, network, currentPrice, commodityName);
+    const result = await buyCommodity(commodityId, amount, network, currentPrice, commodityName, contractAddresses);
 
     if (result.success) {
       // No need for a toast here, useTrade hook handles success toasts

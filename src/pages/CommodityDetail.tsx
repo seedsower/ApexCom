@@ -123,6 +123,7 @@ const CommodityDetail = () => {
               commodityId={commodity.id}
               commodityName={commodity.name}
               currentPrice={commodity.price}
+              contractAddresses={commodity.contractAddresses}
             />
           </div>
         </div>

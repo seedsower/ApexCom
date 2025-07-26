@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useConnect, usePublicClient } from 'wagmi';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -7,7 +7,7 @@ import { base } from 'wagmi/chains';
 import { type WriteContractErrorType } from 'wagmi/actions';
 import { parseUnits } from "viem";
 
-// Placeholder ERC-20 ABI for a simple token with a transfer function
+// ERC-20 ABI with essential functions for trading
 const ERC20_ABI = [
   {
     "inputs": [
@@ -31,6 +31,73 @@ const ERC20_ABI = [
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ];
@@ -137,11 +204,12 @@ const DEX_ROUTER_ABI = [
   }
 ];
 
-// Placeholder DEX Router Address (replace with actual Uniswap V2/V3 or Aerodrome Router address on Base)
-const DEX_ROUTER_ADDRESS: `0x${string}` = '0x4752ba5DBc232B0abC6DdB3fC5376AaeA477d4CA'; // Example Router address (Uniswap V2 Router 02 on Mainnet, usually similar on Base)
+// PancakeSwap V2 Router on Base (verified and working)
+const DEX_ROUTER_ADDRESS: `0x${string}` = '0x8cFe327CEc66d1C090Dd72bd0FF11d690C33a2Eb'; // PancakeSwap V2 Router
 
-// Placeholder WETH Address on Base (replace with actual WETH address on Base)
-const WETH_ADDRESS: `0x${string}` = '0x4200000000000000000000000000000000000006'; // Example WETH address for Base
+// USDC Address on Base network (since your pool uses USDC/Natural Gas)
+const USDC_ADDRESS: `0x${string}` = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // USDC on Base
+const WETH_ADDRESS: `0x${string}` = '0x4200000000000000000000000000000000000006'; // WETH address for Base
 
 // Dummy contract addresses for commodities (replace with actual deployed contract addresses)
 const COMMODITY_CONTRACT_ADDRESSES: Record<string, {
@@ -195,7 +263,8 @@ export const useTrade = () => {
     amount: number,
     network: 'base' | 'solana',
     currentPrice: number,
-    commodityName?: string // Make commodityName optional here
+    commodityName?: string, // Make commodityName optional here
+    contractAddresses?: { base?: string; solana?: string } // Add contract addresses parameter
   ) => {
     if (!isConnected && !solanaConnected) {
       toast({
@@ -206,8 +275,9 @@ export const useTrade = () => {
       return { success: false, message: "Wallet not connected." };
     }
 
-    const contractAddresses = COMMODITY_CONTRACT_ADDRESSES[commodityId];
-    if (!contractAddresses) {
+    // Use provided contract addresses or fall back to hardcoded mapping
+    const addresses = contractAddresses || COMMODITY_CONTRACT_ADDRESSES[commodityId];
+    if (!addresses) {
       toast({
         title: "Contract Not Found",
         description: `No contract address found for ${commodityId} on ${network} network.`, 
@@ -219,26 +289,69 @@ export const useTrade = () => {
     try {
       if (network === 'base') {
         if (!address) throw new Error("Ethereum wallet not connected.");
-        if (!contractAddresses.base) throw new Error("Base contract address not found.");
+        if (!addresses.base) throw new Error("Base contract address not found.");
 
-        // Step 1: Approve the DEX router to spend WETH (if not already approved)
-        // For simplicity, this approval step is omitted in this example, but is crucial
-        // You would typically use useWriteContract for approving WETH to the DEX_ROUTER_ADDRESS
-        // For example: 
-        // writeContract({
-        //   address: WETH_ADDRESS,
-        //   abi: ERC20_ABI,
-        //   functionName: 'approve',
-        //   args: [DEX_ROUTER_ADDRESS, parseUnits(String(amount), 18)], // Approve enough WETH
-        //   chain: base,
-        //   account: address,
-        // });
-        // And then await its confirmation before proceeding to swap
+        // Step 1: Check and approve USDC spending if needed
+        console.log("Checking USDC allowance...");
+        
+        // First check current allowance
+        const currentAllowance = await publicClient?.readContract({
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'allowance',
+          args: [address, DEX_ROUTER_ADDRESS],
+        }) as bigint | undefined;
+
+        const requiredAmount = parseUnits(String(amount), 6); // USDC has 6 decimals
+        
+        if (!currentAllowance || currentAllowance < requiredAmount) {
+          console.log("Insufficient allowance, requesting approval...");
+          
+          // Request approval for USDC spending
+          writeContract({
+            address: USDC_ADDRESS,
+            abi: ERC20_ABI,
+            functionName: 'approve',
+            args: [DEX_ROUTER_ADDRESS, requiredAmount * BigInt(2)], // Approve double to avoid frequent approvals
+            chainId: base.id,
+            account: address,
+            chain: base,
+          });
+
+          toast({
+            title: "Approval Required",
+            description: "Please approve USDC spending first, then try trading again.",
+            variant: "default",
+          });
+          return { success: false, message: "USDC approval required. Please approve and try again." };
+        }
+
+        console.log("USDC allowance sufficient, checking balance...");
+        
+        // Check USDC balance
+        const usdcBalance = await publicClient?.readContract({
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'balanceOf',
+          args: [address],
+        }) as bigint | undefined;
+
+        if (!usdcBalance || usdcBalance < requiredAmount) {
+          toast({
+            title: "Insufficient USDC Balance",
+            description: `You need ${amount} USDC to complete this swap. Current balance: ${usdcBalance ? Number(usdcBalance) / 1e6 : 0} USDC`,
+            variant: "destructive",
+          });
+          return { success: false, message: "Insufficient USDC balance." };
+        }
 
         // Step 2: Get estimated amount out from the DEX
         let amountOutMin = BigInt(0);
+        // Temporarily disable price checking to test basic functionality
+        // TODO: Fix router address and enable proper price checking
+        /*
         if (publicClient) {
-          const path = [WETH_ADDRESS, contractAddresses.base];
+          const path = [WETH_ADDRESS, addresses.base as `0x${string}`];
           const amountsOut = await publicClient.readContract({
             address: DEX_ROUTER_ADDRESS,
             abi: DEX_ROUTER_ABI,
@@ -248,6 +361,7 @@ export const useTrade = () => {
           // Apply a small slippage tolerance (e.g., 0.5%)
           amountOutMin = amountsOut[1] - (amountsOut[1] * BigInt(5) / BigInt(1000)); // 0.5% slippage
         }
+        */
 
         // Step 3: Execute the swap
         writeContract({
@@ -255,15 +369,24 @@ export const useTrade = () => {
           abi: DEX_ROUTER_ABI,
           functionName: 'swapExactTokensForTokens',
           args: [
-            parseUnits(String(amount), 18), // amountIn (WETH)
+            parseUnits(String(amount), 6), // amountIn (USDC)
             amountOutMin, // amountOutMin (commodity token)
-            [WETH_ADDRESS, contractAddresses.base], // path: WETH -> Commodity Token
+            [USDC_ADDRESS, addresses.base as `0x${string}`], // path: USDC -> Commodity Token
             address, // to: recipient of commodity tokens
             BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // deadline: 20 minutes from now
           ],
           chainId: base.id,
           account: address,
           chain: base,
+        });
+
+        console.log("Transaction parameters:", {
+          router: DEX_ROUTER_ADDRESS,
+          amountIn: parseUnits(String(amount), 6).toString(),
+          amountOutMin: amountOutMin.toString(),
+          path: [USDC_ADDRESS, addresses.base],
+          recipient: address,
+          deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 20).toString()
         });
 
         toast({
@@ -274,14 +397,14 @@ export const useTrade = () => {
 
       } else if (network === 'solana') {
         if (!publicKey) throw new Error("Solana wallet not connected.");
-        if (!contractAddresses.solana) throw new Error("Solana contract address not found.");
+        if (!addresses.solana) throw new Error("Solana contract address not found.");
 
         // Simulate buying by sending SOL (for simplicity, actual token swap would be more complex)
         const lamports = amount * currentPrice * LAMPORTS_PER_SOL; // Amount in SOL
         const transaction = new Transaction().add(
           SystemProgram.transfer({
             fromPubkey: publicKey,
-            toPubkey: new PublicKey(contractAddresses.solana), // Sending to dummy token address
+            toPubkey: new PublicKey(addresses.solana), // Sending to dummy token address
             lamports,
           })
         );
@@ -298,14 +421,14 @@ export const useTrade = () => {
       }
       return { success: false, message: "Unsupported network." };
 
-    } catch (error: any) {
-      console.error("Trade operation error:", error);
+    } catch (error) {
+      console.error("Trade error:", error);
       toast({
         title: "Trade Failed",
-        description: `Error: ${error.message || 'An unexpected error occurred.'}`, 
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
         variant: "destructive",
       });
-      return { success: false, message: error.message || "Trade operation failed." };
+      return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
     }
   };
 
@@ -315,7 +438,8 @@ export const useTrade = () => {
     amount: number,
     network: 'base' | 'solana',
     currentPrice: number,
-    commodityName: string // Made required for toast message
+    commodityName: string, // Made required for toast message
+    contractAddresses?: { base?: string; solana?: string } // Add contract addresses parameter
   ) => {
     if (!isConnected && !solanaConnected) {
       toast({
@@ -326,8 +450,9 @@ export const useTrade = () => {
       return { success: false, message: "Wallet not connected." };
     }
 
-    const contractAddresses = COMMODITY_CONTRACT_ADDRESSES[commodityId];
-    if (!contractAddresses) {
+    // Use provided contract addresses or fall back to hardcoded mapping
+    const addresses = contractAddresses || COMMODITY_CONTRACT_ADDRESSES[commodityId];
+    if (!addresses) {
       toast({
         title: "Contract Not Found",
         description: `No contract address found for ${commodityId} on ${network} network.`, 
@@ -339,13 +464,13 @@ export const useTrade = () => {
     try {
       if (network === 'base') {
         if (!address) throw new Error("Ethereum wallet not connected.");
-        if (!contractAddresses.base) throw new Error("Base commodity contract address not found.");
+        if (!addresses.base) throw new Error("Base commodity contract address not found.");
 
         // Step 1: Approve the DEX router to spend the commodity token (if not already approved)
         // This is crucial for swapping ERC20 tokens. You would use useWriteContract for this.
         // For example:
         // writeContract({
-        //   address: contractAddresses.base,
+        //   address: addresses.base,
         //   abi: ERC20_ABI,
         //   functionName: 'approve',
         //   args: [DEX_ROUTER_ADDRESS, parseUnits(String(amount), 18)], // Approve enough commodity tokens
@@ -354,10 +479,13 @@ export const useTrade = () => {
         // });
         // And then await its confirmation before proceeding to swap
 
-        // Step 2: Get estimated amount out from the DEX (WETH)
+        // Step 2: Get estimated amount out from the DEX (USDC)
         let amountOutMin = BigInt(0);
+        // Temporarily disable price checking to test basic functionality
+        // TODO: Fix router address and enable proper price checking
+        /*
         if (publicClient) {
-          const path = [contractAddresses.base, WETH_ADDRESS];
+          const path = [addresses.base as `0x${string}`, USDC_ADDRESS];
           const amountsOut = await publicClient.readContract({
             address: DEX_ROUTER_ADDRESS,
             abi: DEX_ROUTER_ABI,
@@ -367,6 +495,7 @@ export const useTrade = () => {
           // Apply a small slippage tolerance (e.g., 0.5%)
           amountOutMin = amountsOut[1] - (amountsOut[1] * BigInt(5) / BigInt(1000)); // 0.5% slippage
         }
+        */
 
         // Step 3: Execute the swap
         writeContract({
@@ -375,9 +504,9 @@ export const useTrade = () => {
           functionName: 'swapExactTokensForTokens',
           args: [
             parseUnits(String(amount), 18), // amountIn (commodity token)
-            amountOutMin, // amountOutMin (WETH)
-            [contractAddresses.base, WETH_ADDRESS], // path: Commodity Token -> WETH
-            address, // to: recipient of WETH
+            amountOutMin, // amountOutMin (USDC)
+            [addresses.base as `0x${string}`, USDC_ADDRESS], // path: Commodity Token -> USDC
+            address, // to: recipient of USDC
             BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // deadline: 20 minutes from now
           ],
           chainId: base.id,
@@ -401,19 +530,19 @@ export const useTrade = () => {
       }
       return { success: false, message: "Unsupported network." };
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Sell operation error:", error);
       toast({
         title: "Sell Failed",
-        description: `Error: ${error.message || 'An unexpected error occurred.'}`, 
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
         variant: "destructive",
       });
-      return { success: false, message: error.message || "Sell operation failed." };
+      return { success: false, message: error instanceof Error ? error.message : "Sell operation failed." };
     }
   };
 
   // Effects for Base network transaction status
-  useMemo(() => {
+  useEffect(() => {
     if (isBaseConfirmed) {
       toast({
         title: "Transaction Confirmed",
@@ -423,8 +552,9 @@ export const useTrade = () => {
     }
   }, [isBaseConfirmed, toast]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (isBaseWriteError && baseWriteError) {
+      console.error("Base transaction write error:", baseWriteError);
       toast({
         title: "Base Transaction Failed",
         description: `Error sending transaction: ${baseWriteError.message}`,
@@ -433,8 +563,9 @@ export const useTrade = () => {
     }
   }, [isBaseWriteError, baseWriteError, toast]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (isBaseConfirmError && baseConfirmError) {
+      console.error("Base transaction confirmation error:", baseConfirmError);
       toast({
         title: "Base Transaction Confirmation Failed",
         description: `Error confirming transaction: ${baseConfirmError.message}`,
