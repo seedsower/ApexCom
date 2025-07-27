@@ -47,7 +47,7 @@ export const generateCommodities = (): CommodityPrice[] => {
     // Energy Commodities
     createCommodity("Crude Oil", 82.79, "USD/Bbl", CommodityCategory.Energy, "CL", { base: "0x0000000000000000000000000000000000000001", solana: "SOLANA_CRUDE_OIL_TOKEN_ADDRESS" }),
     createCommodity("Brent Oil", 84.91, "USD/Bbl", CommodityCategory.Energy, "BZ", { base: "0x0000000000000000000000000000000000000002", solana: "SOLANA_BRENT_OIL_TOKEN_ADDRESS" }),
-    createCommodity("Natural Gas", 2.10, "USD/MMBtu", CommodityCategory.Energy, "NG", { base: "0x6303a76Eb542F17e0cadbB5f808B725DD702CE93", solana: "SOLANA_NATURAL_GAS_TOKEN_ADDRESS" }),
+    createCommodity("Natural Gas", 2.10, "USD/MMBtu", CommodityCategory.Energy, "NG", { base: "0x6303a76Eb542F17e0cadbB5f808B725DD702CE93", solana: "HpNnAySB34qEHSBANp8dbUu7UqzPxZG5CktqbdKnC9Qp" }),
     createCommodity("Heating Oil", 2.64, "USD/Gal", CommodityCategory.Energy, "HO", { base: "0x0000000000000000000000000000000000000004", solana: "SOLANA_HEATING_OIL_TOKEN_ADDRESS" }),
     createCommodity("Gasoline", 2.43, "USD/Gal", CommodityCategory.Energy, "RB", { base: "0x0000000000000000000000000000000000000005", solana: "SOLANA_GASOLINE_TOKEN_ADDRESS" }),
     createCommodity("London Gas Oil", 735.38, "USD/MT", CommodityCategory.Energy, "LGO", { base: "0x0000000000000000000000000000000000000006", solana: "SOLANA_LONDON_GAS_OIL_TOKEN_ADDRESS" }),

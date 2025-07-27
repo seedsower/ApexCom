@@ -15,12 +15,16 @@ export const SOLANA_NETWORK = WalletAdapterNetwork.Devnet;
 export const SOLANA_RPC_ENDPOINT = clusterApiUrl('devnet');
 
 export const useSolanaWallets = () => {
-  return useMemo(() => [
-    new PhantomWalletAdapter(),
-    new SolflareWalletAdapter({ network: SOLANA_NETWORK }),
-    new TorusWalletAdapter(),
-    new LedgerWalletAdapter(),
-  ], []);
+  return useMemo(() => {
+    // Simplified approach: Start with just Phantom to avoid MetaMask conflicts
+    // We can add other wallets back once the main trading functionality is working
+    const wallets = [
+      new PhantomWalletAdapter(),
+    ];
+    
+    console.log('Solana wallets (simplified):', wallets.map(w => w.name));
+    return wallets;
+  }, []);
 };
 
 export const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed');
