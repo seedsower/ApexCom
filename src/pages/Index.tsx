@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { priceService } from "@/services/priceService";
 import { useNavigate } from "react-router-dom";
-import { Loader2Icon, RefreshCwIcon, FolderIcon, MountainIcon } from "lucide-react";
+import { Loader2Icon, FolderIcon, MountainIcon } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const [commodities, setCommodities] = useState<CommodityPrice[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [autoUpdateActive, setAutoUpdateActive] = useState<boolean>(false);
+
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Fetch commodity prices when component mounts or category changes
@@ -50,25 +49,7 @@ const Index = () => {
     setSelectedCategory(value);
   };
 
-  // Handle manual refresh
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await priceService.scrapePrices();
-    await priceService.updateOracles();
-    await fetchPrices();
-    setIsRefreshing(false);
-  };
 
-  // Toggle automatic updates
-  const toggleAutomaticUpdates = () => {
-    if (autoUpdateActive) {
-      priceService.stopAutomaticUpdates();
-      setAutoUpdateActive(false);
-    } else {
-      priceService.startAutomaticUpdates(fetchPrices);
-      setAutoUpdateActive(true);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -82,35 +63,12 @@ const Index = () => {
                 ApexCommodity
               </h1>
               <p className="max-w-3xl text-muted-foreground">
-                Real-time commodity prices scraped from Trading Economics and synchronized 
-                with blockchain oracles every 6 hours.
+                Tokenized Commodities on Solana and Base Blockchains.
               </p>
             </div>
 
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 lg:items-center">
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleRefresh} 
-                  variant="secondary" 
-                  className="gap-2" 
-                  disabled={isRefreshing}
-                >
-                  {isRefreshing ? (
-                    <Loader2Icon className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCwIcon className="h-4 w-4" />
-                  )}
-                  Refresh Prices
-                </Button>
-                
-                <Button 
-                  onClick={toggleAutomaticUpdates} 
-                  variant={autoUpdateActive ? "destructive" : "outline"} 
-                  className="gap-2"
-                >
-                  {autoUpdateActive ? "Stop Auto-Updates" : "Start Auto-Updates"}
-                </Button>
-              </div>
+
 
               <div className="flex flex-col space-y-2 sm:items-end">
                 <div className="flex gap-2">
