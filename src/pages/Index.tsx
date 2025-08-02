@@ -63,7 +63,7 @@ const Index = () => {
                 ApexCommodity
               </h1>
               <p className="max-w-3xl text-muted-foreground">
-                Tokenized Commodities on Solana and Base Blockchains.
+                Tokenized Commodities on Solana Blockchain.
               </p>
             </div>
 

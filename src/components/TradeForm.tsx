@@ -10,16 +10,15 @@ interface TradeFormProps {
   commodityId: string;
   commodityName: string;
   currentPrice: number;
-  contractAddresses?: { base?: string; solana?: string };
+  contractAddresses?: { solana?: string };
 }
 
 export function TradeForm({ commodityId, commodityName, currentPrice, contractAddresses }: TradeFormProps) {
   const [amount, setAmount] = useState<number>(1);
-  const [network, setNetwork] = useState<'base' | 'solana'>('base');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const { buyCommodity, sellCommodity, isBaseTransactionPending, isBaseConfirming, isSolanaTransactionPending } = useTrade();
+  const { buyCommodity, sellCommodity } = useTrade();
 
-  const isLoading = isBaseTransactionPending || isBaseConfirming || isSolanaTransactionPending;
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleTrade = async () => {
     if (amount <= 0) {
@@ -31,9 +30,13 @@ export function TradeForm({ commodityId, commodityName, currentPrice, contractAd
       return;
     }
 
+    setIsLoading(true);
+    
     const result = tradeType === 'buy' 
-      ? await buyCommodity(commodityId, amount, network, currentPrice, commodityName, contractAddresses)
-      : await sellCommodity(commodityId, amount, network, currentPrice, commodityName, contractAddresses);
+      ? await buyCommodity(commodityId, commodityName, amount, currentPrice, 'solana', contractAddresses)
+      : await sellCommodity(commodityId, commodityName, amount, currentPrice, 'solana', contractAddresses);
+
+    setIsLoading(false);
 
     if (result.success) {
       // No need for a toast here, useTrade hook handles success toasts
@@ -77,15 +80,9 @@ export function TradeForm({ commodityId, commodityName, currentPrice, contractAd
         </div>
         <div>
           <Label htmlFor="network">Network</Label>
-          <Select value={network} onValueChange={(value: 'base' | 'solana') => setNetwork(value)}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select Network" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="base">Base</SelectItem>
-              <SelectItem value="solana">Solana</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="mt-1 p-2 rounded-md border bg-muted text-muted-foreground">
+            Solana Blockchain
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between">

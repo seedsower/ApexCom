@@ -23,7 +23,7 @@ const createCommodity = (
   unit: string,
   category: CommodityCategory,
   ticker?: string,
-  contractAddresses?: { base?: string; solana?: string }
+  contractAddresses?: { solana?: string }
 ): CommodityPrice => {
   const { change, changePercent } = generateRandomChange(price);
   
@@ -45,17 +45,17 @@ const createCommodity = (
 export const generateCommodities = (): CommodityPrice[] => {
   return [
     // Energy Commodities
-    createCommodity("Crude Oil", 82.79, "USD/Bbl", CommodityCategory.Energy, "CL", { base: "0x0000000000000000000000000000000000000001", solana: "SOLANA_CRUDE_OIL_TOKEN_ADDRESS" }),
-    createCommodity("Brent Oil", 84.91, "USD/Bbl", CommodityCategory.Energy, "BZ", { base: "0x0000000000000000000000000000000000000002", solana: "SOLANA_BRENT_OIL_TOKEN_ADDRESS" }),
-    createCommodity("Natural Gas", 2.10, "USD/MMBtu", CommodityCategory.Energy, "NG", { base: "0x6303a76Eb542F17e0cadbB5f808B725DD702CE93", solana: "HpNnAySB34qEHSBANp8dbUu7UqzPxZG5CktqbdKnC9Qp" }),
-    createCommodity("Heating Oil", 2.64, "USD/Gal", CommodityCategory.Energy, "HO", { base: "0x0000000000000000000000000000000000000004", solana: "SOLANA_HEATING_OIL_TOKEN_ADDRESS" }),
-    createCommodity("Gasoline", 2.43, "USD/Gal", CommodityCategory.Energy, "RB", { base: "0x0000000000000000000000000000000000000005", solana: "SOLANA_GASOLINE_TOKEN_ADDRESS" }),
-    createCommodity("London Gas Oil", 735.38, "USD/MT", CommodityCategory.Energy, "LGO", { base: "0x0000000000000000000000000000000000000006", solana: "SOLANA_LONDON_GAS_OIL_TOKEN_ADDRESS" }),
-    createCommodity("Coal", 148.75, "USD/T", CommodityCategory.Energy, "MTF", { base: "0x0000000000000000000000000000000000000007", solana: "SOLANA_COAL_TOKEN_ADDRESS" }),
-    createCommodity("Ethanol", 1.35, "USD/Gal", CommodityCategory.Energy, "ACE", { base: "0x0000000000000000000000000000000000000008", solana: "SOLANA_ETHANOL_TOKEN_ADDRESS" }),
-    createCommodity("Carbon", 67.24, "EUR/MT", CommodityCategory.Energy, "CFI", { base: "0x0000000000000000000000000000000000000009", solana: "SOLANA_CARBON_TOKEN_ADDRESS" }),
-    createCommodity("UK Natural Gas", 88.52, "GBp/Thm", CommodityCategory.Energy, "NBP", { base: "0x000000000000000000000000000000000000000A", solana: "SOLANA_UK_NATURAL_GAS_TOKEN_ADDRESS" }),
-    createCommodity("TTF Gas", 33.05, "EUR/MWh", CommodityCategory.Energy, "TTF", { base: "0x000000000000000000000000000000000000000B", solana: "SOLANA_TTF_GAS_TOKEN_ADDRESS" }),
+    createCommodity("Crude Oil", 82.79, "USD/Bbl", CommodityCategory.Energy, "CL", { solana: "SOLANA_CRUDE_OIL_TOKEN_ADDRESS" }),
+    createCommodity("Brent Oil", 84.91, "USD/Bbl", CommodityCategory.Energy, "BZ", { solana: "SOLANA_BRENT_OIL_TOKEN_ADDRESS" }),
+    createCommodity("Natural Gas", 2.10, "USD/MMBtu", CommodityCategory.Energy, "NG", { solana: "HpNnAySB34qEHSBANp8dbUu7UqzPxZG5CktqbdKnC9Qp" }),
+    createCommodity("Heating Oil", 2.64, "USD/Gal", CommodityCategory.Energy, "HO", { solana: "SOLANA_HEATING_OIL_TOKEN_ADDRESS" }),
+    createCommodity("Gasoline", 2.43, "USD/Gal", CommodityCategory.Energy, "RB", { solana: "SOLANA_GASOLINE_TOKEN_ADDRESS" }),
+    createCommodity("London Gas Oil", 735.38, "USD/MT", CommodityCategory.Energy, "LGO", { solana: "SOLANA_LONDON_GAS_OIL_TOKEN_ADDRESS" }),
+    createCommodity("Coal", 148.75, "USD/T", CommodityCategory.Energy, "MTF", { solana: "SOLANA_COAL_TOKEN_ADDRESS" }),
+    createCommodity("Ethanol", 1.35, "USD/Gal", CommodityCategory.Energy, "ACE", { solana: "SOLANA_ETHANOL_TOKEN_ADDRESS" }),
+    createCommodity("Carbon", 67.24, "EUR/MT", CommodityCategory.Energy, "CFI", { solana: "SOLANA_CARBON_TOKEN_ADDRESS" }),
+    createCommodity("UK Natural Gas", 88.52, "GBp/Thm", CommodityCategory.Energy, "NBP", { solana: "SOLANA_UK_NATURAL_GAS_TOKEN_ADDRESS" }),
+    createCommodity("TTF Gas", 33.05, "EUR/MWh", CommodityCategory.Energy, "TTF", { solana: "SOLANA_TTF_GAS_TOKEN_ADDRESS" }),
     
     // Metals Commodities
     createCommodity("Gold", 2381.90, "USD/t oz.", CommodityCategory.Metals, "GC", { base: "0x000000000000000000000000000000000000000C", solana: "SOLANA_GOLD_TOKEN_ADDRESS" }),
